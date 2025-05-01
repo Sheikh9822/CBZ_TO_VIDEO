@@ -97,7 +97,7 @@ When you run the script, it will first check for dependencies and then present y
 :::======================================================:::
         OPERATION: CBZ to Video Conversion Batch
 :::======================================================:::
->>> Enter CBZ file directory (empty for default): /storage/67DC-DBA3/Android/media/com.google.android.keep/.~```~_/.•••```/local/extra
+>>> Enter CBZ file directory (empty for default): setup/path/to/your/cbz/default_folder
 >>> > /path/to/your/cbz/folder
 
 >>> Available CBZ file(s):
@@ -109,7 +109,7 @@ When you run the script, it will first check for dependencies and then present y
 
 ::: 1 CBZ file(s) selected for processing.
 :::======================================================:::
->>> Enter music directory (empty for default): /storage/emulated/0/Android/media/com.android.vending/.SUS/aydi
+>>> Enter music directory (empty for default): setup/path/to/your/Music/default_folder
 >>> > /path/to/your/music/folder
 
 >>> Scanning music directory and subdirectories...
