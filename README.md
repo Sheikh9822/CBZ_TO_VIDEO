@@ -288,8 +288,8 @@ You can modify the following variables at the top of the script to customize its
 
 ```python
 # === CONFIGURATION ===
-DEFAULT_CBZ_DIR = "/storage/67DC-DBA3/Android/media/com.google.android.keep/.~```~_/.•••```/local/extra" # Default CBZ directory
-DEFAULT_MUSIC_DIR = "/storage/emulated/0/Android/media/com.android.vending/.SUS/aydi" # Default Music directory
+DEFAULT_CBZ_DIR = " setup/path/to/your/cbz/default_folder" # Default CBZ directory
+DEFAULT_MUSIC_DIR = " setup/path/to/your/music/default_folder # Default Music directory
 
 # List of supported image extensions (case-insensitive)
 IMAGE_EXTENSIONS = (".webp", ".jpg", ".jpeg", ".png")
