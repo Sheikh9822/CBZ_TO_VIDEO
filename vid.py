@@ -33,7 +33,7 @@ DEFAULT_MUSIC_DIR = " setup/path/to/your/music/default_folder" # Default Music d
 # List of supported image extensions (case-insensitive)
 IMAGE_EXTENSIONS = (".webp", ".jpg", ".jpeg", ".png")
 # List of supported audio extensions (case-insensitive)
-AUDIO_EXTENSIONS = (".mp3", ".wav", ".aac", ".flac", ".ogg")
+AUDIO_EXTENSIONS = (".mp3", ".wav", ".aac", ".flac",".opus", ".ogg")
 
 FPS = 4
 DURATION_PER_FRAME = 1 / FPS # Calculated from FPS
@@ -491,7 +491,7 @@ def run_ffmpeg(input_list_path, audio_file, output_file, fps, num_input_images, 
 
 # === FUNCTION TO PROCESS A SINGLE CBZ ===
 
-def process_single_cbz(cbz_file_path, audio_file_path, fps, duration_per_frame, image_extensions, audio_fade_in_duration, audio_fade_out_duration):
+def process_single_cbz(cbz_file_path, audio_file_path, fps, duration_per_frame, image_extensions, audio_fade_in_duration, audio_fade_out_duration, skip_magick):
     """
     Handles the full processing pipeline for a single CBZ file.
     Returns True on success, False on recoverable failure (skips to next CBZ).
@@ -542,7 +542,7 @@ def process_single_cbz(cbz_file_path, audio_file_path, fps, duration_per_frame, 
             except (FileNotFoundError, subprocess.CalledProcessError):
                 pass
 
-            if magick_available:
+            if magick_available and not skip_magick:
                 print(HEADER_LINE)
                 print(f"{ARROW_RIGHT} Initiating Image Data Reconstruction Protocol...")
                 resave_results_relative = thread_map(
@@ -558,6 +558,10 @@ def process_single_cbz(cbz_file_path, audio_file_path, fps, duration_per_frame, 
                 print(f"\n{ARROW_LEFT} Reconstruction protocol complete. {len(images_after_resave_relative)} images ready for verification.")
                 if len(images_after_resave_relative) < len(extracted_image_paths_relative):
                      print(f"{WARNING_PREFIX} {len(extracted_image_paths_relative) - len(images_after_resave_relative)} images were identified as unstable and excluded.")
+                print(HEADER_LINE)
+            elif skip_magick:
+                print(HEADER_LINE)
+                print(f"{INFO_PREFIX} Image Data Reconstruction Protocol skipped by user.")
                 print(HEADER_LINE)
 
 
@@ -636,11 +640,31 @@ def main():
          print(f"{ERROR_PREFIX} Please ensure FFmpeg is installed and accessible in your system's PATH.")
          sys.exit(1)
 
+    magick_available = False
     try:
         subprocess.run(["magick", "-version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(f"{INFO_PREFIX} ImageMagick module detected. Resaving protocol enabled. {STATUS_OK}")
+        print(f"{INFO_PREFIX} ImageMagick module detected. Resaving protocol available. {STATUS_OK}")
+        magick_available = True
     except (FileNotFoundError, subprocess.CalledProcessError):
          print(f"{INFO_PREFIX} ImageMagick module not found. Resaving protocol will be skipped. {STATUS_OK}")
+
+    skip_magick_reconstruction = False
+    if magick_available:
+        while True:
+            prompt = f"{ARROW_RIGHT} Run Image Reconstruction Protocol (recommended for stability)? [{COLOR_GREEN}Y{RESET_COLOR}/{COLOR_RED}n{RESET_COLOR}]: "
+            user_choice = input(prompt).strip().lower()
+            if user_choice in ['y', 'yes', '']:
+                skip_magick_reconstruction = False
+                print(f"{INFO_PREFIX} Image Reconstruction Protocol is {COLOR_GREEN}ENABLED{RESET_COLOR}.")
+                break
+            elif user_choice in ['n', 'no']:
+                skip_magick_reconstruction = True
+                print(f"{INFO_PREFIX} Image Reconstruction Protocol is {COLOR_RED}DISABLED{RESET_COLOR}.")
+                break
+            else:
+                print(f"{WARNING_PREFIX} Invalid input. Please enter 'y' or 'n'.")
+    else:
+        skip_magick_reconstruction = True
 
 
     print(f"{ARROW_LEFT} Dependency check complete.")
@@ -718,7 +742,8 @@ def main():
                  DURATION_PER_FRAME, # Pass DURATION_PER_FRAME
                  IMAGE_EXTENSIONS,
                  AUDIO_FADE_IN_DURATION,
-                 AUDIO_FADE_OUT_DURATION
+                 AUDIO_FADE_OUT_DURATION,
+                 skip_magick_reconstruction # Pass the user's choice
              )
              if success:
                  successful_count += 1
