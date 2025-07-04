@@ -393,6 +393,7 @@ def run_ffmpeg(input_list_path, audio_file, output_file, fps, num_input_images, 
             output_file = os.path.basename(output_file) # Fallback to current dir
 
 
+    # Base command structure
     cmd = [
         "ffmpeg",
         "-y", # Overwrite output files without asking
@@ -444,6 +445,23 @@ def run_ffmpeg(input_list_path, audio_file, output_file, fps, num_input_images, 
     if audio_filters:
         cmd.extend(["-af", ",".join(audio_filters)])
         print(f"{INFO_PREFIX} Applying audio filters: {','.join(audio_filters)}")
+
+    # --- Keyframe Interval (GOP size) ---
+    # For H.264, a common practice is to have keyframes at regular intervals,
+    # typically related to the frame rate. For example, a keyframe every 2 seconds.
+    # If FPS is 2, a keyframe every 4 frames (2 seconds * 2 FPS) is reasonable.
+    # The `-g` or `-keyint_min` option controls this. Let's set it based on FPS.
+    # A common rule of thumb is keyframe_interval = FPS * 2 (e.g., 4 for 2 FPS)
+    # Setting `keyint_min` ensures that keyframes are not too close together.
+    keyframe_interval = int(FPS * 2)
+    keyint_min = max(1, keyframe_interval // 2) # Ensure keyint_min is at least 1 and half of keyframe_interval
+
+    if keyframe_interval > 0:
+        cmd.extend(["-g", str(keyframe_interval)])
+        print(f"{INFO_PREFIX} Setting keyframe interval (GOP size) to {keyframe_interval} frames.")
+    if keyint_min > 0:
+        cmd.extend(["-keyint_min", str(keyint_min)])
+        print(f"{INFO_PREFIX} Setting minimum keyframe interval to {keyint_min} frames.")
 
     cmd.append(output_file)
 
